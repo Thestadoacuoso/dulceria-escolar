@@ -3,77 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punto de Entrega - Dulcería</title>
+    <title>Sugar Dash | Entrega Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        .agotado { filter: grayscale(1); opacity: 0.6; pointer-events: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+        .gradient-text { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover { transform: translateY(-5px); }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
-    <div class="max-w-md mx-auto pb-20">
-        <div class="bg-indigo-600 p-6 text-white rounded-b-3xl shadow-lg mb-6">
-            <h1 class="text-2xl font-bold text-center">🍬 Dulcería Escolar</h1>
-            <p class="text-center text-indigo-100 text-sm">Pide tu dulce y te lo llevo a donde estés</p>
+    <div class="sticky top-0 z-40 glass border-b border-slate-200/50 px-6 py-4">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight gradient-text">SUGAR DASH</h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Biomédica Express • Aldo</p>
+            </div>
+            <div class="bg-indigo-100 text-indigo-600 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-md mx-auto p-6 pb-24">
+        <div class="bg-indigo-600 rounded-3xl p-6 mb-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 class="text-xl font-extrabold mb-1">¿Antojo en clase? 🍬</h2>
+                <p class="text-indigo-100 text-sm opacity-90">Pide ahora y te lo llevo a tu salón en minutos.</p>
+            </div>
+            <div class="absolute -right-4 -bottom-4 opacity-20">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
         </div>
 
-        <div class="px-4 space-y-4">
+        <div class="grid gap-4">
             {% for p in productos %}
-            <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-gray-100 {{ 'agotado' if not p.disponible }}">
+            <div class="product-card bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between {{ 'opacity-50 grayscale pointer-events-none' if not p.disponible }}">
                 <div class="flex-1">
-                    <h2 class="text-lg font-bold text-gray-800">{{ p.nombre }}</h2>
-                    <p class="text-indigo-600 font-bold">${{ p.precio }}</p>
+                    <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md mb-2 inline-block">DULCE</span>
+                    <h3 class="font-bold text-slate-800 text-lg leading-tight">{{ p.nombre }}</h3>
+                    <p class="text-indigo-600 font-extrabold text-xl mt-1">${{ p.precio }}</p>
                 </div>
-                
-                {% if p.disponible %}
-                <button onclick="realizarPedido('{{ p.nombre }}', {{ p.precio }})" 
-                        class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition">
-                    Pedir
-                </button>
-                {% else %}
-                <span class="bg-gray-200 text-gray-500 px-4 py-2 rounded-xl font-bold text-sm">AGOTADO</span>
-                {% endif %}
+
+                <div class="flex flex-col items-end gap-2">
+                    {% if p.disponible %}
+                        <button onclick="abrirModal('{{ p.nombre }}', {{ p.precio }}, {{ 'true' if p.sabores else 'false' }}, '{{ p.sabores|join(',') if p.sabores else '' }}')" 
+                                class="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-indigo-600 transition shadow-lg shadow-slate-200">
+                            Pedir
+                        </button>
+                    {% else %}
+                        <span class="text-slate-400 font-bold text-xs">AGOTADO</span>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>
+    </main>
 
-        <footer class="mt-10 text-center text-gray-400 text-xs">
-            <p>Hecho por Aldo • 2026</p>
+    <div id="modalPedido" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModal()"></div>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            
+            <h3 id="modalTitulo" class="text-2xl font-black text-slate-800 mb-2">Completar Pedido</h3>
+            <p id="modalPrecio" class="text-indigo-600 font-bold mb-6 text-lg"></p>
+
+            <div class="space-y-4">
+                <div id="containerSabor" class="hidden">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block tracking-wider">¿Qué sabor quieres?</label>
+                    <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition font-semibold text-slate-700">
+                        </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block tracking-wider">Tu Nombre</label>
+                    <input type="text" id="inputNombre" placeholder="Ej. Aldo Hernandez" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition font-semibold">
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block tracking-wider">Lugar de Entrega</label>
+                    <input type="text" id="inputPunto" placeholder="Ej. Salón 204 o Biblioteca" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition font-semibold">
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block tracking-wider">Método de Pago</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-indigo-50 transition">Efectivo</button>
+                        <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-indigo-50 transition">Transferencia</button>
+                    </div>
+                </div>
+
+                <button onclick="confirmarPedido()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition active:scale-95 mt-4">
+                    ¡ENVIAR PEDIDO!
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        function realizarPedido(dulce, precio) {
-            const nombre = prompt("¿Cuál es tu nombre?");
-            if (!nombre) return;
+        let pedidoActual = {};
 
-            const punto = prompt("📍 ¿En qué punto de entrega estás? (Ej: Salón 201, Canchas, Edificio B)");
-            if (!punto) return;
+        function abrirModal(nombre, precio, tieneSabores, saboresStr) {
+            pedidoActual = { nombre, precio, metodo_pago: '' };
+            document.getElementById('modalTitulo').innerText = nombre;
+            document.getElementById('modalPrecio').innerText = `$${precio}`;
+            
+            const containerSabor = document.getElementById('containerSabor');
+            const selectSabor = document.getElementById('selectSabor');
+            
+            if (tieneSabores) {
+                containerSabor.classList.remove('hidden');
+                selectSabor.innerHTML = '<option value="">Elegir sabor...</option>';
+                saboresStr.split(',').forEach(s => {
+                    selectSabor.innerHTML += `<option value="${s}">${s}</option>`;
+                });
+            } else {
+                containerSabor.classList.add('hidden');
+            }
 
-            // Enviamos los datos a nuestro servidor de Python
+            document.getElementById('modalPedido').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPedido').classList.add('hidden');
+        }
+
+        function setPago(metodo, btn) {
+            pedidoActual.metodo_pago = metodo;
+            document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
+            btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+        }
+
+        function confirmarPedido() {
+            const sabor = document.getElementById('selectSabor').value;
+            const nombre = document.getElementById('inputNombre').value;
+            const punto = document.getElementById('inputPunto').value;
+
+            if (!nombre || !punto || !pedidoActual.metodo_pago) {
+                alert("⚠️ Por favor completa todos los campos y selecciona pago.");
+                return;
+            }
+
+            if (!document.getElementById('containerSabor').classList.contains('hidden') && !sabor) {
+                alert("⚠️ Selecciona un sabor.");
+                return;
+            }
+
+            const productoFinal = sabor ? `${pedidoActual.nombre} (${sabor})` : pedidoActual.nombre;
+
             fetch('/enviar_pedido', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     nombre_cliente: nombre,
-                    dulce: dulce,
+                    dulce: productoFinal,
                     punto: punto,
-                    precio: precio
+                    metodo_pago: pedidoActual.metodo_pago,
+                    precio: pedidoActual.precio
                 })
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("✅ ¡Pedido enviado! En un momento te busco en: " + punto);
-                } else {
-                    alert("❌ Hubo un error. Inténtalo de nuevo.");
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("❌ No se pudo conectar con el servidor.");
+            }).then(() => {
+                alert("✅ ¡Pedido enviado! Ya voy para allá.");
+                cerrarModal();
+                location.reload();
             });
         }
     </script>
-
 </body>
 </html>
