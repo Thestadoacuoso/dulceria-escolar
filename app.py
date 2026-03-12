@@ -16,10 +16,13 @@ CHAT_ID = os.environ.get('CHAT_ID', '1347278058')
 
 def conectar_hoja():
     info_claves = json.loads(creds_json)
-    alcance = ['https://www.googleapis.com/auth/spreadsheets']
+    # Agregamos el alcance de Drive además del de Spreadsheets
+    alcance = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
     creds = Credentials.from_service_account_info(info_claves, scopes=alcance)
     cliente = gspread.authorize(creds)
-    # Cambia esto por el nombre EXACTO de tu archivo de Google Sheets
     return cliente.open("Inventario Sugar Dash")
 
 @app.route('/')
@@ -89,3 +92,4 @@ def enviar_pedido():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
