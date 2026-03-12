@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Entrega - Dulcería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .agotado { filter: grayscale(1); opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <div class="max-w-md mx-auto pb-20">
+        <div class="bg-indigo-600 p-6 text-white rounded-b-3xl shadow-lg mb-6">
+            <h1 class="text-2xl font-bold text-center">🍬 Dulcería Escolar</h1>
+            <p class="text-center text-indigo-100 text-sm">Pide tu dulce y te lo llevo a donde estés</p>
+        </div>
+
+        <div class="px-4 space-y-4">
+            {% for p in productos %}
+            <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-gray-100 {{ 'agotado' if not p.disponible }}">
+                <div class="flex-1">
+                    <h2 class="text-lg font-bold text-gray-800">{{ p.nombre }}</h2>
+                    <p class="text-indigo-600 font-bold">${{ p.precio }}</p>
+                </div>
+                
+                {% if p.disponible %}
+                <button onclick="realizarPedido('{{ p.nombre }}', {{ p.precio }})" 
+                        class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition">
+                    Pedir
+                </button>
+                {% else %}
+                <span class="bg-gray-200 text-gray-500 px-4 py-2 rounded-xl font-bold text-sm">AGOTADO</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <footer class="mt-10 text-center text-gray-400 text-xs">
+            <p>Hecho por Aldo • 2026</p>
+        </div>
+    </div>
+
+    <script>
+        function realizarPedido(dulce, precio) {
+            const nombre = prompt("¿Cuál es tu nombre?");
+            if (!nombre) return;
+
+            const punto = prompt("📍 ¿En qué punto de entrega estás? (Ej: Salón 201, Canchas, Edificio B)");
+            if (!punto) return;
+
+            // Enviamos los datos a nuestro servidor de Python
+            fetch('/enviar_pedido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre_cliente: nombre,
+                    dulce: dulce,
+                    punto: punto,
+                    precio: precio
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("✅ ¡Pedido enviado! En un momento te busco en: " + punto);
+                } else {
+                    alert("❌ Hubo un error. Inténtalo de nuevo.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("❌ No se pudo conectar con el servidor.");
+            });
+        }
+    </script>
+
+</body>
+</html>
