@@ -1,76 +1,91 @@
 import os
+import json
 from flask import Flask, render_template, request, jsonify
 import requests
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
-# Inicialización de la App
 app = Flask(__name__)
 
-# Credenciales de Telegram (Obtenidas de Render o valores por defecto)
+# Configuración de Credenciales de Google
+# En Render, crearás una variable llamada GOOGLE_CREDS con el contenido del JSON
+creds_json = os.environ.get('GOOGLE_CREDS')
 TOKEN = os.environ.get('TOKEN', '8796430997:AAHXLpWug1AxqQRbLwhWch_cA9Mp45cx-Dg')
 CHAT_ID = os.environ.get('CHAT_ID', '1347278058')
 
-# Inventario actualizado para Biomédica
-inventario = [
-    {"nombre": "Cacahuetes", "precio": 9, "disponible": True},
-    {"nombre": "Cheetos de queso (Sol)", "precio": 15, "disponible": True},
-    {"nombre": "Paleta de sandía", "precio": 3, "disponible": True},
-    {"nombre": "Pelón mini", "precio": 5, "disponible": True},
-    {"nombre": "Mini Mamut", "precio": 4, "disponible": True},
-    {"nombre": "Boing 1/4", "precio": 13, "disponible": True, 
-     "sabores": ["Mango", "Guayaba", "Uva", "Manzana"]},
-    {"nombre": "PAPAS", "precio": 15, "disponible": True, 
-     "sabores": ["Doritos Nacho", "Sabritas Sal", "Churrumais", "Cheetos Naranja", "Cheetos Flaming", "Chips Sal", "Chips Moradas", "Chips Jalapeño", "Takis Fuego", "Ruffles Queso", "Runners"]},
-    {"nombre": "Galletas (4 pzs)", "precio": 9, "disponible": True, 
-     "sabores": ["Emperador Choc", "Emperador Vain", "Chokis", "Arcoiris"]},
-    {"nombre": "Halls", "precio": 10, "disponible": True, 
-     "sabores": ["Menta", "Yerbabuena", "Cereza", "Boost", "Amarilla"]}
-]
+def conectar_hoja():
+    info_claves = json.loads(creds_json)
+    alcance = ['https://www.googleapis.com/auth/spreadsheets']
+    creds = Credentials.from_service_account_info(info_claves, scopes=alcance)
+    cliente = gspread.authorize(creds)
+    # Cambia esto por el nombre EXACTO de tu archivo de Google Sheets
+    return cliente.open("Inventario Sugar Dash")
 
 @app.route('/')
 def index():
-    """Ruta principal que muestra la tienda"""
-    return render_template('index.html', productos=inventario)
+    try:
+        hoja = conectar_hoja().worksheet("Stock")
+        datos = hoja.get_all_records()
+        
+        # Formatear datos para el HTML
+        productos = []
+        for d in datos:
+            productos.append({
+                "nombre": d['Producto'],
+                "precio": d['Precio'],
+                "disponible": str(d['Status']).upper() == "DISPONIBLE" and d['Cantidad'] > 0,
+                "sabores": d.get('Sabores', '').split(',') if d.get('Sabores') else []
+            })
+        return render_template('index.html', productos=productos)
+    except Exception as e:
+        print(f"Error cargando stock: {e}")
+        return "Error al conectar con el inventario", 500
 
 @app.route('/enviar_pedido', methods=['POST'])
 def enviar_pedido():
-    """Ruta que recibe el JSON del pedido y lo manda a Telegram"""
     datos = request.json
-    
-    # IMPORTANTE: Usamos .get() para que si falta un dato, la app NO se caiga
-    nombre = datos.get('nombre_cliente', 'Invitado')
-    dulce = datos.get('dulce', 'Producto')
-    punto = datos.get('punto', 'No especificado')
-    metodo = datos.get('metodo_pago', 'Efectivo 💵')
-    precio = datos.get('precio', 0)
-
-    # Construcción del mensaje para tu celular
-    mensaje = (f"🍭 *¡NUEVO PEDIDO!*\n\n"
-               f"👤 *Cliente:* {nombre}\n"
-               f"📦 *Producto:* {dulce}\n"
-               f"📍 *Punto:* {punto}\n"
-               f"💳 *Pago:* {metodo}\n"
-               f"💰 *Total:* ${precio}")
-
-    # Enviar a Telegram
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID, 
-        "text": mensaje, 
-        "parse_mode": "Markdown"
-    }
+    ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        # Enviamos la petición y verificamos si funcionó
-        res = requests.post(url, json=payload)
-        if res.status_code == 200:
-            return jsonify({"success": True}), 200
-        else:
-            return jsonify({"success": False, "error": "Telegram no respondió"}), 500
+        doc = conectar_hoja()
+        
+        # 1. Registrar Venta
+        hoja_ventas = doc.worksheet("Ventas")
+        hoja_ventas.append_row([
+            ahora, 
+            datos.get('nombre_cliente'), 
+            datos.get('dulce'), 
+            datos.get('precio'), 
+            datos.get('metodo_pago')
+        ])
+
+        # 2. Restar del Stock
+        hoja_stock = doc.worksheet("Stock")
+        celda = hoja_stock.find(datos.get('dulce').split(' (')[0]) # Busca el nombre base
+        cantidad_actual = int(hoja_stock.cell(celda.row, 3).value)
+        nueva_cantidad = cantidad_actual - 1
+        hoja_stock.update_cell(celda.row, 3, nueva_cantidad)
+        
+        if nueva_cantidad <= 0:
+            hoja_stock.update_cell(celda.row, 4, "AGOTADO")
+
+        # 3. Notificar Telegram
+        mensaje = (f"🍭 *¡VENTA REGISTRADA!*\n\n"
+                   f"👤 {datos.get('nombre_cliente')}\n"
+                   f"📦 {datos.get('dulce')}\n"
+                   f"📍 {datos.get('punto')}\n"
+                   f"💳 {datos.get('metodo_pago')}\n"
+                   f"💰 ${datos.get('precio')}")
+        
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        requests.post(url, json={"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "Markdown"})
+        
+        return jsonify({"success": True})
     except Exception as e:
-        print(f"Error crítico: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        print(f"Error en pedido: {e}")
+        return jsonify({"success": False}), 500
 
 if __name__ == '__main__':
-    # Render asigna un puerto automáticamente
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
