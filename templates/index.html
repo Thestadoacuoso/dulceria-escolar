@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sugar Dash | Entrega Escolar</title>
+    <title>Sugar Dash | Carrito Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,8 @@
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
         .gradient-text { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .product-card:hover { transform: translateY(-5px); }
+        .btn-float { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -24,18 +25,16 @@
             </div>
             <div class="bg-indigo-100 text-indigo-600 p-2 rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
             </div>
         </div>
     </div>
 
-    <main class="max-w-md mx-auto p-6 pb-24">
-        <div class="bg-indigo-600 rounded-3xl p-6 mb-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
-            <div class="relative z-10">
-                <h2 class="text-xl font-extrabold mb-1">¿Antojo en clase? 🍬</h2>
-                <p class="text-indigo-100 text-sm opacity-90">Pide ahora y te lo llevo en minutos.</p>
-            </div>
+    <main class="max-w-md mx-auto p-6 pb-32">
+        <div class="bg-indigo-600 rounded-3xl p-6 mb-8 text-white shadow-xl shadow-indigo-200">
+            <h2 class="text-xl font-extrabold mb-1">¿Qué se te antoja? 🍬</h2>
+            <p class="text-indigo-100 text-sm opacity-90">Arma tu carrito y te lo llevo a tu salón.</p>
         </div>
 
         <div class="grid gap-4">
@@ -45,140 +44,163 @@
                     <h3 class="font-bold text-slate-800 text-lg leading-tight">{{ p.nombre }}</h3>
                     <p class="text-indigo-600 font-extrabold text-xl mt-1">${{ p.precio }}</p>
                 </div>
-                <button onclick="abrirModal('{{ p.nombre }}', {{ p.precio }}, {{ 'true' if p.sabores else 'false' }}, '{{ p.sabores|join(',') if p.sabores else '' }}')" 
+                <button onclick="prepararItem('{{ p.nombre }}', {{ p.precio }}, {{ 'true' if p.sabores else 'false' }}, '{{ p.sabores|join(',') if p.sabores else '' }}')" 
                         class="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-indigo-600 transition shadow-lg">
-                    Pedir
+                    + Añadir
                 </button>
             </div>
             {% endfor %}
         </div>
     </main>
 
-    <div id="modalPedido" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModal()"></div>
+    <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
+        <button onclick="abrirCheckout()" class="max-w-md mx-auto w-full bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-2xl flex justify-between items-center px-8 hover:bg-indigo-700 transition active:scale-95">
+            <span>VER CARRITO</span>
+            <span id="badgeCarrito" class="bg-white text-indigo-600 px-3 py-1 rounded-full text-sm">0</span>
+        </button>
+    </div>
+
+    <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 relative z-10 shadow-2xl">
+            <h3 id="saborTitulo" class="text-2xl font-black text-slate-800 mb-4">Elegir Sabor</h3>
+            <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold mb-6"></select>
+            <button onclick="confirmarAñadir()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg shadow-lg">
+                Agregar al Carrito
+            </button>
+        </div>
+    </div>
+
+    <div id="modalCheckout" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
-            
-            <h3 id="modalTitulo" class="text-2xl font-black text-slate-800 mb-2">Completar Pedido</h3>
-            <p id="modalPrecio" class="text-indigo-600 font-bold mb-6 text-lg"></p>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Finalizar Pedido</h3>
+            <div id="listaCarrito" class="mb-6 space-y-2 text-sm font-medium text-slate-500 border-b border-slate-100 pb-4"></div>
+            <p id="totalCheckout" class="text-indigo-600 font-black text-xl mb-6"></p>
 
             <div class="space-y-4">
-                <div id="containerSabor" class="hidden">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block">¿Sabor?</label>
-                    <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold"></select>
-                </div>
-
                 <input type="text" id="inputNombre" placeholder="Tu Nombre" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
+                <input type="text" id="inputPunto" placeholder="¿Dónde estás? (Ej: Salón 201)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
+                <input type="text" id="inputDescripcion" placeholder="¿Cómo te reconozco? (Opcional)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
                 
-                <input type="text" id="inputPunto" placeholder="¿Dónde te lo entrego? (Ej: Salón 201)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block">Método de Pago</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Efectivo</button>
-                        <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Transferencia</button>
-                    </div>
-                    <div id="infoPago" class="hidden mt-3 p-3 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-medium border border-indigo-100">
-                        Paga a la CLABE: <span class="font-bold">0123 4567 8901 2345</span> o al cel: <span class="font-bold">55 1234 5678</span>
-                    </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Efectivo</button>
+                    <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Transferencia</button>
                 </div>
 
-                <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition active:scale-95">
-                    ¡ENVIAR PEDIDO!
+                <button id="btnFinalizar" onclick="enviarTodo()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition">
+                    ¡ENVIAR TODO EL PEDIDO!
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        let pedidoActual = {};
-        // BLOQUEO DE SEGURIDAD
+        let carrito = [];
+        let itemPendiente = null;
+        let metodoPago = '';
         let estaEnviando = false;
 
-        function abrirModal(nombre, precio, tieneSabores, saboresStr) {
-            pedidoActual = { nombre, precio, metodo_pago: '' };
-            document.getElementById('modalTitulo').innerText = nombre;
-            document.getElementById('modalPrecio').innerText = `$${precio}`;
-            
-            const containerSabor = document.getElementById('containerSabor');
-            const selectSabor = document.getElementById('selectSabor');
-            
+        function prepararItem(nombre, precio, tieneSabores, saboresStr) {
+            itemPendiente = { nombre, precio };
             if (tieneSabores) {
-                containerSabor.classList.remove('hidden');
-                selectSabor.innerHTML = '<option value="">Elegir sabor...</option>';
+                const select = document.getElementById('selectSabor');
+                select.innerHTML = '<option value="">Selecciona sabor...</option>';
                 saboresStr.split(',').forEach(s => {
-                    selectSabor.innerHTML += `<option value="${s.trim()}">${s.trim()}</option>`;
+                    select.innerHTML += `<option value="${s.trim()}">${s.trim()}</option>`;
                 });
+                document.getElementById('modalSabor').classList.remove('hidden');
             } else {
-                containerSabor.classList.add('hidden');
+                confirmarAñadir();
             }
-
-            document.getElementById('modalPedido').classList.remove('hidden');
         }
 
-        function cerrarModal() {
-            document.getElementById('modalPedido').classList.add('hidden');
-            document.getElementById('infoPago').classList.add('hidden');
-        }
+        function confirmarAñadir() {
+            const select = document.getElementById('selectSabor');
+            const sabor = select.value;
+            const tieneSabores = !document.getElementById('modalSabor').classList.contains('hidden');
 
-        function setPago(metodo, btn) {
-            pedidoActual.metodo_pago = metodo;
-            document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
-            btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
-            
-            const info = document.getElementById('infoPago');
-            if(metodo.includes('Transferencia')) info.classList.remove('hidden');
-            else info.classList.add('hidden');
-        }
-
-        function confirmarPedido() {
-            // SI YA SE ENVIÓ, NO HACER NADA
-            if (estaEnviando) return;
-
-            const sabor = document.getElementById('selectSabor').value;
-            const nombre = document.getElementById('inputNombre').value;
-            const punto = document.getElementById('inputPunto').value;
-            const btn = document.getElementById('btnConfirmar');
-
-            if (!nombre || !punto || !pedidoActual.metodo_pago) {
-                alert("⚠️ Por favor completa todos los campos.");
+            if (tieneSabores && !sabor) {
+                alert("⚠️ Por favor elige un sabor.");
                 return;
             }
 
-            // ACTIVAR BLOQUEO Y CAMBIAR ESTADO DEL BOTÓN
-            estaEnviando = true;
-            btn.innerText = "ENVIANDO...";
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            const nombreFinal = sabor ? `${itemPendiente.nombre} (${sabor})` : itemPendiente.nombre;
+            carrito.push({ nombre: nombreFinal, precio: itemPendiente.precio });
+            
+            actualizarUI();
+            cerrarModales();
+        }
 
-            const productoFinal = sabor ? `${pedidoActual.nombre} (${sabor})` : pedidoActual.nombre;
+        function actualizarUI() {
+            const btn = document.getElementById('btnVerCarrito');
+            const badge = document.getElementById('badgeCarrito');
+            if (carrito.length > 0) {
+                btn.classList.remove('hidden');
+                badge.innerText = carrito.length;
+            }
+        }
+
+        function abrirCheckout() {
+            const lista = document.getElementById('listaCarrito');
+            const totalTxt = document.getElementById('totalCheckout');
+            let total = 0;
+            
+            lista.innerHTML = "";
+            carrito.forEach(item => {
+                lista.innerHTML += `<div class="flex justify-between"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
+                total += item.precio;
+            });
+            
+            totalTxt.innerText = `TOTAL: $${total}`;
+            document.getElementById('modalCheckout').classList.remove('hidden');
+        }
+
+        function cerrarModales() {
+            document.getElementById('modalSabor').classList.add('hidden');
+            document.getElementById('modalCheckout').classList.add('hidden');
+        }
+
+        function setPago(metodo, btn) {
+            metodoPago = metodo;
+            document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
+            btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+        }
+
+        function enviarTodo() {
+            if (estaEnviando) return;
+
+            const nombre = document.getElementById('inputNombre').value.trim();
+            const punto = document.getElementById('inputPunto').value.trim();
+            const desc = document.getElementById('inputDescripcion').value.trim();
+            const btn = document.getElementById('btnFinalizar');
+
+            if (!nombre || !punto || !metodoPago) {
+                alert("⚠️ Completa tu nombre, lugar y pago");
+                return;
+            }
+
+            estaEnviando = true;
+            btn.innerText = "PROCESANDO...";
+            btn.classList.add('opacity-50');
 
             fetch('/enviar_pedido', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     nombre_cliente: nombre,
-                    dulce: productoFinal,
+                    productos: carrito,
                     punto: punto,
-                    metodo_pago: pedidoActual.metodo_pago,
-                    precio: pedidoActual.precio
+                    descripcion: desc || "Sin descripción física",
+                    metodo_pago: metodoPago,
+                    total: carrito.reduce((acc, i) => acc + i.precio, 0)
                 })
             }).then(res => {
                 if(res.ok) {
-                    // AVISO DE ÉXITO Y ACTUALIZACIÓN
-                    alert("✅ ¡Pedido enviado! Ya voy para allá.");
-                    location.reload(); 
-                } else {
-                    // ERROR: LIBERAR BOTÓN PARA REINTENTAR
-                    estaEnviando = false;
-                    btn.innerText = "¡ENVIAR PEDIDO!";
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    alert("❌ Error al enviar. Intenta de nuevo.");
+                    alert("✅ ¡Pedido recibido! Ya voy en camino con tus dulces.");
+                    location.reload();
                 }
-            }).catch(err => {
-                estaEnviando = false;
-                btn.innerText = "¡ENVIAR PEDIDO!";
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                console.error("Error:", err);
             });
         }
     </script>
