@@ -83,7 +83,7 @@
                     </div>
                 </div>
 
-                <button onclick="confirmarPedido()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition active:scale-95">
+                <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition active:scale-95">
                     ¡ENVIAR PEDIDO!
                 </button>
             </div>
@@ -92,6 +92,8 @@
 
     <script>
         let pedidoActual = {};
+        // BLOQUEO DE SEGURIDAD
+        let estaEnviando = false;
 
         function abrirModal(nombre, precio, tieneSabores, saboresStr) {
             pedidoActual = { nombre, precio, metodo_pago: '' };
@@ -124,21 +126,29 @@
             document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
             btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
             
-            // Mostrar info de pago si es transferencia
             const info = document.getElementById('infoPago');
             if(metodo.includes('Transferencia')) info.classList.remove('hidden');
             else info.classList.add('hidden');
         }
 
         function confirmarPedido() {
+            // SI YA SE ENVIÓ, NO HACER NADA
+            if (estaEnviando) return;
+
             const sabor = document.getElementById('selectSabor').value;
             const nombre = document.getElementById('inputNombre').value;
             const punto = document.getElementById('inputPunto').value;
+            const btn = document.getElementById('btnConfirmar');
 
             if (!nombre || !punto || !pedidoActual.metodo_pago) {
                 alert("⚠️ Por favor completa todos los campos.");
                 return;
             }
+
+            // ACTIVAR BLOQUEO Y CAMBIAR ESTADO DEL BOTÓN
+            estaEnviando = true;
+            btn.innerText = "ENVIANDO...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
 
             const productoFinal = sabor ? `${pedidoActual.nombre} (${sabor})` : pedidoActual.nombre;
 
@@ -154,14 +164,23 @@
                 })
             }).then(res => {
                 if(res.ok) {
-                    alert("✅ ¡Pedido enviado!");
-                    cerrarModal();
+                    // AVISO DE ÉXITO Y ACTUALIZACIÓN
+                    alert("✅ ¡Pedido enviado! Ya voy para allá.");
+                    location.reload(); 
                 } else {
+                    // ERROR: LIBERAR BOTÓN PARA REINTENTAR
+                    estaEnviando = false;
+                    btn.innerText = "¡ENVIAR PEDIDO!";
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     alert("❌ Error al enviar. Intenta de nuevo.");
                 }
+            }).catch(err => {
+                estaEnviando = false;
+                btn.innerText = "¡ENVIAR PEDIDO!";
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                console.error("Error:", err);
             });
         }
     </script>
 </body>
 </html>
-
