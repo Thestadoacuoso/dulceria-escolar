@@ -9,10 +9,17 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
-        .gradient-text { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-float { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -44,10 +51,16 @@
                     <h3 class="font-bold text-slate-800 text-lg leading-tight">{{ p.nombre }}</h3>
                     <p class="text-indigo-600 font-extrabold text-xl mt-1">${{ p.precio }}</p>
                 </div>
-                <button onclick="prepararItem('{{ p.nombre }}', {{ p.precio }}, {{ 'true' if p.sabores else 'false' }}, '{{ p.sabores|join(',') if p.sabores else '' }}')" 
-                        class="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-indigo-600 transition shadow-lg">
+
+                {% if p.disponible %}
+                <button
+                    onclick='prepararItem({{ p.nombre|tojson }}, {{ p.precio|tojson }}, {{ p.sabores|tojson }})'
+                    class="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-indigo-600 transition shadow-lg">
                     + Añadir
                 </button>
+                {% else %}
+                <span class="text-rose-500 font-bold text-sm px-4 py-2">Agotado</span>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -61,10 +74,12 @@
     </div>
 
     <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModalSabor()"></div>
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 relative z-10 shadow-2xl">
             <h3 id="saborTitulo" class="text-2xl font-black text-slate-800 mb-4 text-center">Elegir Sabor</h3>
-            <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold mb-6"></select>
+            <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold mb-6">
+                <option value="">Selecciona sabor...</option>
+            </select>
             <button onclick="confirmarAñadir()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg shadow-lg">
                 Agregar al Carrito
             </button>
@@ -72,25 +87,43 @@
     </div>
 
     <div id="modalCheckout" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarCheckout()"></div>
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
             <h3 class="text-2xl font-black text-slate-800 mb-2">Tu Pedido</h3>
-            
+
             <div id="listaCarrito" class="mb-6 space-y-3 border-b border-slate-100 pb-4"></div>
-            
             <p id="totalCheckout" class="text-indigo-600 font-black text-xl mb-6 text-right"></p>
 
             <div class="space-y-4">
-                <input type="text" id="inputNombre" placeholder="Tu Nombre" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-                
-                <input type="text" id="inputPunto" placeholder="Punto de entrega (Ej: Salón 201)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-                
-                <input type="text" id="inputDescripcion" placeholder="¿Cómo te reconozco? (Ej: Gorra roja, sudadera negra)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-                
+                <input
+                    type="text"
+                    id="inputNombre"
+                    placeholder="Tu Nombre"
+                    class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold"
+                >
+
+                <input
+                    type="text"
+                    id="inputPunto"
+                    placeholder="Punto de entrega (Ej: Salón 201)"
+                    class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold"
+                >
+
+                <input
+                    type="text"
+                    id="inputDescripcion"
+                    placeholder="¿Cómo te reconozco? (Ej: Gorra roja, sudadera negra)"
+                    class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold"
+                >
+
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">Efectivo</button>
-                    <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">Transferencia</button>
+                    <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">
+                        Efectivo
+                    </button>
+                    <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">
+                        Transferencia
+                    </button>
                 </div>
 
                 <button id="btnFinalizar" onclick="enviarTodo()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition">
@@ -106,93 +139,152 @@
         let metodoPago = '';
         let estaEnviando = false;
 
-        function prepararItem(nombre, precio, tieneSabores, saboresStr) {
-            itemPendiente = { nombre, precio };
-            if (tieneSabores) {
+        function prepararItem(nombre, precio, sabores) {
+            itemPendiente = {
+                nombre: nombre,
+                precio: Number(precio) || 0,
+                sabores: Array.isArray(sabores) ? sabores.filter(s => String(s).trim() !== '') : []
+            };
+
+            if (itemPendiente.sabores.length > 0) {
                 const select = document.getElementById('selectSabor');
+                const titulo = document.getElementById('saborTitulo');
+
+                titulo.innerText = `Elegir sabor de ${itemPendiente.nombre}`;
                 select.innerHTML = '<option value="">Selecciona sabor...</option>';
-                saboresStr.split(',').forEach(s => {
-                    select.innerHTML += `<option value="${s.trim()}">${s.trim()}</option>`;
+
+                itemPendiente.sabores.forEach(sabor => {
+                    const option = document.createElement('option');
+                    option.value = sabor;
+                    option.textContent = sabor;
+                    select.appendChild(option);
                 });
+
                 document.getElementById('modalSabor').classList.remove('hidden');
             } else {
-                confirmarAñadir();
+                carrito.push({
+                    nombre: itemPendiente.nombre,
+                    precio: itemPendiente.precio
+                });
+
+                actualizarUI();
             }
         }
 
         function confirmarAñadir() {
+            if (!itemPendiente) return;
+
             const select = document.getElementById('selectSabor');
             const sabor = select.value;
-            const tieneSabores = !document.getElementById('modalSabor').classList.contains('hidden');
+            const tieneSabores = Array.isArray(itemPendiente.sabores) && itemPendiente.sabores.length > 0;
 
             if (tieneSabores && !sabor) {
                 alert("⚠️ Por favor elige un sabor.");
                 return;
             }
 
-            const nombreFinal = sabor ? `${itemPendiente.nombre} (${sabor})` : itemPendiente.nombre;
-            carrito.push({ nombre: nombreFinal, precio: itemPendiente.precio });
-            
+            const nombreFinal = sabor
+                ? `${itemPendiente.nombre} (${sabor})`
+                : itemPendiente.nombre;
+
+            carrito.push({
+                nombre: nombreFinal,
+                precio: itemPendiente.precio
+            });
+
             actualizarUI();
-            cerrarModales();
+            cerrarModalSabor();
         }
 
         function eliminarDelCarrito(index) {
             carrito.splice(index, 1);
-            if (carrito.length === 0) {
-                cerrarModales();
-            }
             actualizarUI();
-            abrirCheckout(); // Refresca la lista en el modal
+
+            if (carrito.length === 0) {
+                cerrarCheckout();
+                return;
+            }
+
+            abrirCheckout();
         }
 
         function actualizarUI() {
             const btn = document.getElementById('btnVerCarrito');
             const badge = document.getElementById('badgeCarrito');
+
             if (carrito.length > 0) {
                 btn.classList.remove('hidden');
                 badge.innerText = carrito.length;
             } else {
                 btn.classList.add('hidden');
+                badge.innerText = '0';
             }
         }
 
         function abrirCheckout() {
             if (carrito.length === 0) return;
+
             const lista = document.getElementById('listaCarrito');
             const totalTxt = document.getElementById('totalCheckout');
             let total = 0;
-            
+
             lista.innerHTML = "";
+
             carrito.forEach((item, index) => {
+                const precio = Number(item.precio) || 0;
+                total += precio;
+
                 lista.innerHTML += `
                     <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <div class="flex-1">
                             <p class="font-bold text-slate-800 text-sm">${item.nombre}</p>
-                            <p class="text-indigo-600 font-bold text-xs">$${item.precio}</p>
+                            <p class="text-indigo-600 font-bold text-xs">$${precio}</p>
                         </div>
-                        <button onclick="eliminarDelCarrito(${index})" class="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition">
+                        <button onclick="eliminarDelCarrito(${index})" class="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition" title="Eliminar">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </button>
-                    </div>`;
-                total += item.precio;
+                    </div>
+                `;
             });
-            
+
             totalTxt.innerText = `Total: $${total}`;
             document.getElementById('modalCheckout').classList.remove('hidden');
         }
 
-        function cerrarModales() {
+        function cerrarModalSabor() {
             document.getElementById('modalSabor').classList.add('hidden');
+            document.getElementById('selectSabor').innerHTML = '<option value="">Selecciona sabor...</option>';
+            itemPendiente = null;
+        }
+
+        function cerrarCheckout() {
             document.getElementById('modalCheckout').classList.add('hidden');
         }
 
         function setPago(metodo, btn) {
             metodoPago = metodo;
-            document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
+
+            document.querySelectorAll('.pago-btn').forEach(b => {
+                b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+                b.classList.add('border-slate-100', 'text-slate-500');
+            });
+
+            btn.classList.remove('border-slate-100', 'text-slate-500');
             btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+        }
+
+        function resetFormulario() {
+            document.getElementById('inputNombre').value = '';
+            document.getElementById('inputPunto').value = '';
+            document.getElementById('inputDescripcion').value = '';
+            metodoPago = '';
+
+            document.querySelectorAll('.pago-btn').forEach(b => {
+                b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+                b.classList.add('border-slate-100', 'text-slate-500');
+            });
         }
 
         function enviarTodo() {
@@ -214,25 +306,41 @@
 
             fetch('/enviar_pedido', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     nombre_cliente: nombre,
                     productos: carrito,
                     punto: punto,
                     descripcion: desc || "Sin descripción física",
                     metodo_pago: metodoPago,
-                    total: carrito.reduce((acc, i) => acc + i.precio, 0)
+                    total: carrito.reduce((acc, item) => acc + (Number(item.precio) || 0), 0)
                 })
-            }).then(res => {
-                if(res.ok) {
-                    alert("✅ ¡Pedido enviado! Prepárate para tus dulces.");
-                    location.reload();
-                } else {
-                    estaEnviando = false;
-                    btn.innerText = "¡ENVIAR PEDIDO!";
-                    btn.classList.remove('opacity-50');
-                    alert("❌ Error al enviar. Intenta de nuevo.");
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Error al enviar el pedido.");
                 }
+
+                alert("✅ ¡Pedido enviado! Prepárate para tus dulces.");
+
+                carrito = [];
+                actualizarUI();
+                cerrarCheckout();
+                resetFormulario();
+                location.reload();
+            })
+            .catch((err) => {
+                console.error("Error enviando pedido:", err);
+                alert(`❌ ${err.message}`);
+            })
+            .finally(() => {
+                estaEnviando = false;
+                btn.innerText = "¡ENVIAR PEDIDO!";
+                btn.classList.remove('opacity-50');
             });
         }
     </script>
