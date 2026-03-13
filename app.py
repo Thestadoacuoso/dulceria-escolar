@@ -52,30 +52,33 @@ def index():
 def enviar_pedido():
     datos = request.json
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    carrito = datos.get('productos', []) # Lista de productos seleccionados
-    total_compra = datos.get('total', 0)
-    cliente = datos.get('nombre_cliente')
-    punto = datos.get('punto')
-    descripcion = datos.get('descripcion', 'Sin descripción')
+    
+    # Extraemos los datos del carrito
+    productos_pedido = datos.get('productos', [])
+    nombre_cliente = datos.get('nombre_cliente')
+    punto_entrega = datos.get('punto')
+    descripcion_fisica = datos.get('descripcion', 'Sin descripción')
     metodo_pago = datos.get('metodo_pago')
+    total_venta = datos.get('total', 0)
     
     try:
         doc = conectar_hoja()
         hoja_ventas = doc.worksheet("Ventas")
         hoja_stock = doc.worksheet("Stock")
         
-        lista_telegram = ""
+        resumen_productos = ""
         
         # PROCESAMOS CADA PRODUCTO DEL CARRITO
-        for item in carrito:
-            nombre_prod = item.get('nombre')
-            precio_prod = item.get('precio')
+        for item in productos_pedido:
+            nombre_full = item.get('nombre')
+            precio_unitario = item.get('precio')
             
-            # 1. Registro en la pestaña Ventas
-            hoja_ventas.append_row([ahora, cliente, nombre_prod, precio_prod, metodo_pago])
+            # 1. Registrar venta individual en Google Sheets
+            hoja_ventas.append_row([ahora, nombre_cliente, nombre_full, precio_unitario, metodo_pago])
             
-            # 2. Descuento de Stock
-            nombre_base = nombre_prod.split(' (')[0]
+            # 2. Descontar del Stock
+            # (Limpiamos el nombre por si tiene sabor entre paréntesis)
+            nombre_base = nombre_full.split(' (')[0]
             try:
                 celda = hoja_stock.find(nombre_base)
                 if celda:
@@ -85,20 +88,20 @@ def enviar_pedido():
                     
                     if nueva_cantidad <= 0:
                         hoja_stock.update_cell(celda.row, 4, "AGOTADO")
-            except Exception as e:
-                print(f"No se pudo descontar {nombre_prod}: {e}")
+            except:
+                print(f"No se pudo actualizar stock de: {nombre_base}")
 
-            # Añadir a la lista para el mensaje de Telegram
-            lista_telegram += f"• {nombre_prod} (${precio_prod})\n"
+            # Ir armando el texto para Telegram
+            resumen_productos += f"• {nombre_full} (${precio_unitario})\n"
 
-        # 3. Notificación Consolidada a Telegram
-        mensaje = (f"🛍️ *¡NUEVA VENTA MÚLTIPLE!*\n\n"
-                   f"👤 *Cliente:* {cliente}\n"
-                   f"📍 *Lugar:* {punto}\n"
-                   f"👕 *Identificación:* {descripcion}\n"
+        # 3. Notificación Final a Telegram
+        mensaje = (f"🛍️ *¡NUEVO PEDIDO DE {len(productos_pedido)} PRODUCTOS!*\n\n"
+                   f"👤 *Cliente:* {nombre_cliente}\n"
+                   f"📍 *Punto:* {punto_entrega}\n"
+                   f"👕 *Identidad:* {descripcion_fisica}\n"
                    f"💳 *Pago:* {metodo_pago}\n\n"
-                   f"*DETALLE DEL PEDIDO:*\n{lista_telegram}\n"
-                   f"💰 *TOTAL A COBRAR:* ${total_compra}")
+                   f"*DETALLE:*\n{resumen_productos}\n"
+                   f"💰 *TOTAL A COBRAR: ${total_venta}*")
         
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
         requests.post(url, json={"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "Markdown"})
@@ -106,7 +109,7 @@ def enviar_pedido():
         return jsonify({"success": True})
     
     except Exception as e:
-        print(f"Error procesando el carrito: {e}")
+        print(f"Error procesando el pedido: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
