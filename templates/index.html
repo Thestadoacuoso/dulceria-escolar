@@ -63,7 +63,7 @@
     <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 relative z-10 shadow-2xl">
-            <h3 id="saborTitulo" class="text-2xl font-black text-slate-800 mb-4">Elegir Sabor</h3>
+            <h3 id="saborTitulo" class="text-2xl font-black text-slate-800 mb-4 text-center">Elegir Sabor</h3>
             <select id="selectSabor" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold mb-6"></select>
             <button onclick="confirmarAñadir()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg shadow-lg">
                 Agregar al Carrito
@@ -75,22 +75,26 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="cerrarModales()"></div>
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="text-2xl font-black text-slate-800 mb-2">Finalizar Pedido</h3>
-            <div id="listaCarrito" class="mb-6 space-y-2 text-sm font-medium text-slate-500 border-b border-slate-100 pb-4"></div>
-            <p id="totalCheckout" class="text-indigo-600 font-black text-xl mb-6"></p>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Tu Pedido</h3>
+            
+            <div id="listaCarrito" class="mb-6 space-y-3 border-b border-slate-100 pb-4"></div>
+            
+            <p id="totalCheckout" class="text-indigo-600 font-black text-xl mb-6 text-right"></p>
 
             <div class="space-y-4">
                 <input type="text" id="inputNombre" placeholder="Tu Nombre" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-                <input type="text" id="inputPunto" placeholder="¿Dónde estás? (Ej: Salón 201)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
-                <input type="text" id="inputDescripcion" placeholder="¿Cómo te reconozco? (Opcional)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
+                
+                <input type="text" id="inputPunto" placeholder="Punto de entrega (Ej: Salón 201)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
+                
+                <input type="text" id="inputDescripcion" placeholder="¿Cómo te reconozco? (Ej: Gorra roja, sudadera negra)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-semibold">
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Efectivo</button>
-                    <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm">Transferencia</button>
+                    <button onclick="setPago('Efectivo 💵', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">Efectivo</button>
+                    <button onclick="setPago('Transferencia 📱', this)" class="pago-btn p-4 border-2 border-slate-100 rounded-2xl font-bold text-sm text-slate-500">Transferencia</button>
                 </div>
 
                 <button id="btnFinalizar" onclick="enviarTodo()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-700 transition">
-                    ¡ENVIAR TODO EL PEDIDO!
+                    ¡ENVIAR PEDIDO!
                 </button>
             </div>
         </div>
@@ -133,27 +137,50 @@
             cerrarModales();
         }
 
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            if (carrito.length === 0) {
+                cerrarModales();
+            }
+            actualizarUI();
+            abrirCheckout(); // Refresca la lista en el modal
+        }
+
         function actualizarUI() {
             const btn = document.getElementById('btnVerCarrito');
             const badge = document.getElementById('badgeCarrito');
             if (carrito.length > 0) {
                 btn.classList.remove('hidden');
                 badge.innerText = carrito.length;
+            } else {
+                btn.classList.add('hidden');
             }
         }
 
         function abrirCheckout() {
+            if (carrito.length === 0) return;
             const lista = document.getElementById('listaCarrito');
             const totalTxt = document.getElementById('totalCheckout');
             let total = 0;
             
             lista.innerHTML = "";
-            carrito.forEach(item => {
-                lista.innerHTML += `<div class="flex justify-between"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
+            carrito.forEach((item, index) => {
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800 text-sm">${item.nombre}</p>
+                            <p class="text-indigo-600 font-bold text-xs">$${item.precio}</p>
+                        </div>
+                        <button onclick="eliminarDelCarrito(${index})" class="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>`;
                 total += item.precio;
             });
             
-            totalTxt.innerText = `TOTAL: $${total}`;
+            totalTxt.innerText = `Total: $${total}`;
             document.getElementById('modalCheckout').classList.remove('hidden');
         }
 
@@ -169,7 +196,7 @@
         }
 
         function enviarTodo() {
-            if (estaEnviando) return;
+            if (estaEnviando || carrito.length === 0) return;
 
             const nombre = document.getElementById('inputNombre').value.trim();
             const punto = document.getElementById('inputPunto').value.trim();
@@ -177,7 +204,7 @@
             const btn = document.getElementById('btnFinalizar');
 
             if (!nombre || !punto || !metodoPago) {
-                alert("⚠️ Completa tu nombre, lugar y pago");
+                alert("⚠️ Completa tu nombre, punto de entrega y método de pago.");
                 return;
             }
 
@@ -198,8 +225,13 @@
                 })
             }).then(res => {
                 if(res.ok) {
-                    alert("✅ ¡Pedido recibido! Ya voy en camino con tus dulces.");
+                    alert("✅ ¡Pedido enviado! Prepárate para tus dulces.");
                     location.reload();
+                } else {
+                    estaEnviando = false;
+                    btn.innerText = "¡ENVIAR PEDIDO!";
+                    btn.classList.remove('opacity-50');
+                    alert("❌ Error al enviar. Intenta de nuevo.");
                 }
             });
         }
