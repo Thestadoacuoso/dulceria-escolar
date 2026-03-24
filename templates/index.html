@@ -29,6 +29,7 @@
                 radial-gradient(circle at top right, rgba(36, 87, 166, 0.10), transparent 24%),
                 linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
             color: var(--sd-text);
+            overflow-x: hidden;
         }
 
         .glass {
@@ -207,6 +208,68 @@
             vertical-align: middle;
         }
 
+        .cart-icon {
+            filter: drop-shadow(0 4px 10px rgba(255,122,26,0.20));
+            transform-origin: center;
+        }
+
+        .cart-icon-bounce {
+            animation: cartIconBounce 0.55s ease;
+        }
+
+        .cart-icon-wiggle {
+            animation: cartIconWiggle 0.4s ease;
+        }
+
+        .cart-button-pulse {
+            animation: cartButtonPulse 0.45s ease;
+        }
+
+        .cart-count-bubble {
+            position: absolute;
+            top: -7px;
+            right: -9px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
+            border: 2px solid white;
+            transform-origin: center;
+        }
+
+        .cart-count-bubble.bump {
+            animation: bubblePop 0.42s ease;
+        }
+
+        .confetti-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 80;
+        }
+
+        .confetti-dot {
+            position: absolute;
+            top: -18px;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            opacity: 0.95;
+            animation: confettiFall linear forwards;
+            will-change: transform, opacity;
+        }
+
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -270,6 +333,50 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        @keyframes cartIconBounce {
+            0% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.16) rotate(-5deg); }
+            45% { transform: scale(0.96) rotate(4deg); }
+            65% { transform: scale(1.08) rotate(-2deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes cartIconWiggle {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-2px) rotate(-3deg); }
+            40% { transform: translateX(2px) rotate(3deg); }
+            60% { transform: translateX(-1px) rotate(-2deg); }
+            80% { transform: translateX(1px) rotate(2deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+
+        @keyframes cartButtonPulse {
+            0% { transform: translateY(0) scale(1); }
+            35% { transform: translateY(-4px) scale(1.02); }
+            65% { transform: translateY(2px) scale(0.995); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        @keyframes bubblePop {
+            0% { transform: scale(0.85); }
+            40% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translate3d(0, 0, 0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate3d(var(--drift, 0px), 105vh, 0) scale(0.9);
+                opacity: 0.95;
+            }
+        }
     </style>
 </head>
 
@@ -324,8 +431,14 @@
 
     <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
         <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-between items-center px-8 active:scale-95">
-            <span>VER CARRITO</span>
-            <span id="badgeCarrito" class="bg-white text-[#ff7a1a] px-3 py-1 rounded-full text-sm">0</span>
+            <span class="flex items-center gap-3">
+                <span class="relative inline-flex items-center justify-center">
+                    <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
+                    <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
+                </span>
+                <span>VER CARRITO</span>
+            </span>
+            <span id="badgeCarrito" class="bg-white/90 text-[#ff7a1a] px-3 py-1 rounded-full text-sm font-bold">0</span>
         </button>
     </div>
 
@@ -395,6 +508,8 @@
         </div>
     </div>
 
+    <div id="confettiLayer" class="confetti-layer"></div>
+
     <script>
         let carrito = [];
         let itemPendiente = null;
@@ -451,6 +566,38 @@
                 box.classList.add('opacity-0', 'translate-y-4');
                 setTimeout(() => toast.classList.add('hidden'), 300);
             }, 1800);
+        }
+
+        function lanzarConfeti(cantidad = 55) {
+            const layer = document.getElementById('confettiLayer');
+            if (!layer) return;
+
+            const colores = ['#ff7a1a', '#ff9a3c', '#ffb76b', '#173b78', '#2457a6', '#ef4444', '#ffffff'];
+
+            for (let i = 0; i < cantidad; i++) {
+                const dot = document.createElement('span');
+                const size = Math.random() * 8 + 6;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 1.6 + 2.2;
+                const delay = Math.random() * 0.35;
+                const drift = (Math.random() - 0.5) * 180;
+                const color = colores[Math.floor(Math.random() * colores.length)];
+
+                dot.className = 'confetti-dot';
+                dot.style.left = `${left}vw`;
+                dot.style.width = `${size}px`;
+                dot.style.height = `${size}px`;
+                dot.style.background = color;
+                dot.style.animationDuration = `${duration}s`;
+                dot.style.animationDelay = `${delay}s`;
+                dot.style.setProperty('--drift', `${drift}px`);
+
+                layer.appendChild(dot);
+
+                setTimeout(() => {
+                    dot.remove();
+                }, (duration + delay) * 1000 + 300);
+            }
         }
 
         function animarFeedbackAgregar(boton) {
@@ -547,9 +694,50 @@
             requestAnimationFrame(animate);
         }
 
+        function animarCarritoIcono() {
+            const icon = document.getElementById("cartIcon");
+            const cartButton = document.getElementById("cartButton");
+            const bubble = document.getElementById("cartCountBubble");
+
+            if (icon) {
+                icon.classList.remove("cart-icon-bounce", "cart-icon-wiggle");
+                void icon.offsetWidth;
+                icon.classList.add("cart-icon-bounce", "cart-icon-wiggle");
+
+                setTimeout(() => {
+                    icon.classList.remove("cart-icon-bounce", "cart-icon-wiggle");
+                }, 550);
+            }
+
+            if (cartButton) {
+                cartButton.classList.remove("cart-button-pulse");
+                void cartButton.offsetWidth;
+                cartButton.classList.add("cart-button-pulse");
+
+                setTimeout(() => {
+                    cartButton.classList.remove("cart-button-pulse");
+                }, 450);
+            }
+
+            if (bubble && !bubble.classList.contains("hidden")) {
+                bubble.classList.remove("bump");
+                void bubble.offsetWidth;
+                bubble.classList.add("bump");
+
+                setTimeout(() => {
+                    bubble.classList.remove("bump");
+                }, 420);
+            }
+
+            if (navigator.vibrate) {
+                navigator.vibrate([25, 20, 35]);
+            }
+        }
+
         function animarAgregarCompleto(boton, nombreProducto = '+1') {
             animarFeedbackAgregar(boton);
             animarVueloAlCarrito(boton, nombreProducto);
+            animarCarritoIcono();
         }
 
         function prepararItem(nombre, precio, sabores, boton = null) {
@@ -645,6 +833,7 @@
         function actualizarUI() {
             const btn = document.getElementById('btnVerCarrito');
             const badge = document.getElementById('badgeCarrito');
+            const bubble = document.getElementById('cartCountBubble');
 
             if (carrito.length > 0) {
                 if (btn.classList.contains('hidden')) {
@@ -652,10 +841,21 @@
                     btn.classList.add('cart-visible');
                     setTimeout(() => btn.classList.remove('cart-visible'), 400);
                 }
+
                 badge.innerText = carrito.length;
+
+                if (bubble) {
+                    bubble.innerText = carrito.length;
+                    bubble.classList.remove('hidden');
+                }
             } else {
                 btn.classList.add('hidden');
                 badge.innerText = '0';
+
+                if (bubble) {
+                    bubble.innerText = '0';
+                    bubble.classList.add('hidden');
+                }
             }
         }
 
@@ -764,6 +964,7 @@
                     throw new Error(data.error || "Error al enviar el pedido.");
                 }
 
+                lanzarConfeti(60);
                 mostrarToast("✅ ¡Pedido enviado! Prepárate para tus dulces.", "ok");
 
                 carrito = [];
@@ -773,7 +974,7 @@
 
                 setTimeout(() => {
                     location.reload();
-                }, 900);
+                }, 1400);
             })
             .catch((err) => {
                 console.error("Error enviando pedido:", err);
