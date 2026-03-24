@@ -38,6 +38,10 @@
             box-shadow: 0 8px 24px rgba(255, 179, 92, 0.10);
         }
 
+        .header-hidden {
+            transform: translateY(-100%);
+        }
+
         .product-card {
             transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
             background: rgba(255,255,255,0.97);
@@ -116,20 +120,20 @@
 
 <body class="min-h-screen">
 
-    <div class="sticky top-0 z-40 glass px-6 py-1">
-    <div class="max-w-md mx-auto flex justify-center items-center">
-        <div class="text-center w-full">
-            <img
-                src="/static/logo_sugar.png"
-                alt="Sugar Dash"
-                class="h-[200px] mx-auto object-contain mb-[-36px] drop-shadow-md transition duration-300 ease-in-out hover:scale-105"
-            >
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.18em] mt-0">
-                • Biomédica Express •
-            </p>
+    <div id="mainHeader" class="sticky top-0 z-40 glass px-6 py-1 transition-transform duration-300">
+        <div class="max-w-md mx-auto flex justify-center items-center">
+            <div class="text-center w-full">
+                <img
+                    src="/static/logo_sugar.png"
+                    alt="Sugar Dash"
+                    class="h-[200px] mx-auto object-contain mb-[-36px] drop-shadow-md transition duration-300 ease-in-out hover:scale-105"
+                >
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.18em] mt-0">
+                    • Biomédica Express •
+                </p>
+            </div>
         </div>
     </div>
-</div>
 
     <main class="max-w-md mx-auto p-6 pb-32">
         <div class="hero-card rounded-3xl p-6 mb-8 text-white relative overflow-hidden">
@@ -440,6 +444,23 @@
                 btn.classList.remove('opacity-50');
             });
         }
+
+        let lastScrollY = window.scrollY;
+        const header = document.getElementById('mainHeader');
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY <= 10) {
+                header.classList.remove('header-hidden');
+            } else if (currentScrollY > lastScrollY) {
+                header.classList.add('header-hidden');
+            } else {
+                header.classList.remove('header-hidden');
+            }
+
+            lastScrollY = currentScrollY;
+        });
     </script>
 </body>
 </html>
