@@ -43,7 +43,9 @@
         }
 
         .product-card {
-            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.28s ease;
             background: rgba(255,255,255,0.97);
             border: 2px solid var(--sd-line);
             box-shadow: 0 12px 28px rgba(255, 122, 26, 0.10);
@@ -68,6 +70,7 @@
         .btn-add {
             background: linear-gradient(135deg, var(--sd-blue-1) 0%, var(--sd-blue-2) 100%);
             box-shadow: 0 10px 20px rgba(36, 87, 166, 0.22);
+            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-add:hover {
@@ -78,11 +81,17 @@
         .btn-cart {
             background: linear-gradient(135deg, var(--sd-orange-2) 0%, var(--sd-orange-1) 100%);
             box-shadow: 0 18px 34px rgba(255, 122, 26, 0.30);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--sd-orange-2) 0%, var(--sd-orange-1) 100%);
             box-shadow: 0 14px 28px rgba(255, 122, 26, 0.24);
+            transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.04);
         }
 
         .price-text {
@@ -111,9 +120,155 @@
             color: var(--sd-orange-2) !important;
         }
 
+        .modal-panel {
+            transform: translateY(22px) scale(0.96);
+            opacity: 0;
+            transition: transform 0.28s ease, opacity 0.28s ease;
+        }
+
+        .modal-panel.show {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .modal-backdrop {
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+        }
+
+        .bump {
+            animation: bump 0.35s ease;
+        }
+
+        .cart-bounce {
+            animation: cartBounce 0.45s ease;
+        }
+
+        .fly-target-pulse {
+            animation: flyTargetPulse 0.45s ease;
+        }
+
+        .add-feedback {
+            position: absolute;
+            right: 1rem;
+            top: 0.2rem;
+            background: linear-gradient(135deg, #ff7a1a, #ff9a3c);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 999px;
+            pointer-events: none;
+            animation: floatUpFade 0.7s ease forwards;
+            box-shadow: 0 8px 18px rgba(255, 122, 26, 0.25);
+        }
+
+        .fly-clone {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            min-width: 72px;
+            max-width: 140px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--sd-orange-2) 0%, var(--sd-orange-1) 100%);
+            color: white;
+            font-weight: 800;
+            font-size: 12px;
+            text-align: center;
+            box-shadow: 0 14px 30px rgba(255, 122, 26, 0.28);
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            will-change: left, top, transform, opacity;
+        }
+
+        .cart-visible {
+            display: block !important;
+            animation: cartReveal 0.35s ease;
+        }
+
+        .removing-item {
+            animation: removeItem 0.28s ease forwards;
+            overflow: hidden;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 999px;
+            display: inline-block;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+        }
+
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes bump {
+            0% { transform: scale(1); }
+            40% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes cartBounce {
+            0% { transform: translateY(0); }
+            35% { transform: translateY(-8px); }
+            60% { transform: translateY(3px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes flyTargetPulse {
+            0% { transform: scale(1); }
+            35% { transform: scale(1.10); }
+            70% { transform: scale(0.96); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatUpFade {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-24px) scale(1); opacity: 0; }
+        }
+
+        @keyframes cartReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(24px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes removeItem {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                max-height: 100px;
+                margin-bottom: 0.75rem;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(30px) scale(0.96);
+                max-height: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                border-width: 0;
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -155,8 +310,8 @@
 
                 {% if p.disponible %}
                 <button
-                    onclick='prepararItem({{ p.nombre|tojson }}, {{ p.precio|tojson }}, {{ p.sabores|tojson }})'
-                    class="btn-add text-white px-5 py-3 rounded-2xl font-bold text-sm transition active:scale-95">
+                    onclick='prepararItem({{ p.nombre|tojson }}, {{ p.precio|tojson }}, {{ p.sabores|tojson }}, this)'
+                    class="btn-add text-white px-5 py-3 rounded-2xl font-bold text-sm active:scale-95">
                     + Añadir
                 </button>
                 {% else %}
@@ -168,15 +323,15 @@
     </main>
 
     <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
-        <button onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-between items-center px-8 transition active:scale-95">
+        <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-between items-center px-8 active:scale-95">
             <span>VER CARRITO</span>
             <span id="badgeCarrito" class="bg-white text-[#ff7a1a] px-3 py-1 rounded-full text-sm">0</span>
         </button>
     </div>
 
     <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" onclick="cerrarModalSabor()"></div>
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 relative z-10 shadow-2xl border-2 border-[var(--sd-line)]">
+        <div id="backdropSabor" class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm modal-backdrop" onclick="cerrarModalSabor()"></div>
+        <div id="panelSabor" class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 relative z-10 shadow-2xl border-2 border-[var(--sd-line)] modal-panel">
             <h3 id="saborTitulo" class="text-2xl font-black text-slate-800 mb-4 text-center">Elegir Sabor</h3>
             <select id="selectSabor" class="soft-input w-full p-4 rounded-2xl outline-none font-semibold mb-6">
                 <option value="">Selecciona sabor...</option>
@@ -188,8 +343,8 @@
     </div>
 
     <div id="modalCheckout" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" onclick="cerrarCheckout()"></div>
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh] border-2 border-[var(--sd-line)]">
+        <div id="backdropCheckout" class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm modal-backdrop" onclick="cerrarCheckout()"></div>
+        <div id="panelCheckout" class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh] border-2 border-[var(--sd-line)] modal-panel">
             <div class="w-12 h-1.5 bg-orange-100 rounded-full mx-auto mb-6"></div>
             <h3 class="text-2xl font-black text-slate-800 mb-2">Tu Pedido</h3>
 
@@ -234,17 +389,175 @@
         </div>
     </div>
 
+    <div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] hidden">
+        <div id="toastBox" class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold opacity-0 translate-y-4 transition-all duration-300">
+            Mensaje
+        </div>
+    </div>
+
     <script>
         let carrito = [];
         let itemPendiente = null;
         let metodoPago = '';
         let estaEnviando = false;
 
-        function prepararItem(nombre, precio, sabores) {
+        function mostrarModal(modalId, backdropId, panelId) {
+            const modal = document.getElementById(modalId);
+            const backdrop = document.getElementById(backdropId);
+            const panel = document.getElementById(panelId);
+
+            modal.classList.remove('hidden');
+
+            requestAnimationFrame(() => {
+                backdrop.classList.add('show');
+                panel.classList.add('show');
+            });
+        }
+
+        function ocultarModal(modalId, backdropId, panelId, limpiar = null) {
+            const modal = document.getElementById(modalId);
+            const backdrop = document.getElementById(backdropId);
+            const panel = document.getElementById(panelId);
+
+            backdrop.classList.remove('show');
+            panel.classList.remove('show');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (typeof limpiar === 'function') limpiar();
+            }, 260);
+        }
+
+        function mostrarToast(msg, tipo = 'ok') {
+            const toast = document.getElementById('toast');
+            const box = document.getElementById('toastBox');
+
+            box.textContent = msg;
+            box.className = 'px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold opacity-0 translate-y-4 transition-all duration-300';
+
+            if (tipo === 'ok') {
+                box.classList.add('bg-slate-900', 'text-white');
+            } else {
+                box.classList.add('bg-rose-600', 'text-white');
+            }
+
+            toast.classList.remove('hidden');
+
+            requestAnimationFrame(() => {
+                box.classList.remove('opacity-0', 'translate-y-4');
+            });
+
+            setTimeout(() => {
+                box.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 1800);
+        }
+
+        function animarFeedbackAgregar(boton) {
+            if (!boton) return;
+
+            boton.classList.remove('bump');
+            void boton.offsetWidth;
+            boton.classList.add('bump');
+
+            const contenedor = boton.closest('.product-card');
+            if (!contenedor) return;
+
+            contenedor.style.position = 'relative';
+
+            const badge = document.createElement('div');
+            badge.className = 'add-feedback';
+            badge.textContent = '+1';
+            contenedor.appendChild(badge);
+
+            setTimeout(() => badge.remove(), 700);
+        }
+
+        function animarVueloAlCarrito(boton, nombreProducto = '+1') {
+            if (!boton) return;
+
+            const carritoContenedor = document.getElementById('btnVerCarrito');
+            const carritoBoton = document.getElementById('cartButton');
+
+            if (!carritoContenedor || !carritoBoton) return;
+
+            carritoContenedor.classList.remove('hidden');
+
+            const origenRect = boton.getBoundingClientRect();
+            const destinoRect = carritoBoton.getBoundingClientRect();
+
+            const startX = origenRect.left + origenRect.width / 2;
+            const startY = origenRect.top + origenRect.height / 2;
+
+            const endX = destinoRect.left + destinoRect.width - 42;
+            const endY = destinoRect.top + destinoRect.height / 2;
+
+            const clone = document.createElement('div');
+            clone.className = 'fly-clone';
+            clone.textContent = nombreProducto.length > 16 ? nombreProducto.slice(0, 16) + '…' : nombreProducto;
+            clone.style.left = `${startX}px`;
+            clone.style.top = `${startY}px`;
+            document.body.appendChild(clone);
+
+            const duration = 700;
+            const startTime = performance.now();
+
+            function easeInOutCubic(t) {
+                return t < 0.5
+                    ? 4 * t * t * t
+                    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function animate(now) {
+                const elapsed = now - startTime;
+                const raw = Math.min(elapsed / duration, 1);
+                const t = easeInOutCubic(raw);
+
+                const x = startX + (endX - startX) * t;
+
+                const controlLift = -120;
+                const y =
+                    (1 - t) * (1 - t) * startY +
+                    2 * (1 - t) * t * (Math.min(startY, endY) + controlLift) +
+                    t * t * endY;
+
+                const scale = 1 - 0.55 * t;
+                const opacity = 1 - 0.15 * t;
+
+                clone.style.left = `${x}px`;
+                clone.style.top = `${y}px`;
+                clone.style.opacity = `${opacity}`;
+                clone.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+                if (raw < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    clone.remove();
+
+                    carritoBoton.classList.remove('fly-target-pulse', 'cart-bounce');
+                    void carritoBoton.offsetWidth;
+                    carritoBoton.classList.add('fly-target-pulse', 'cart-bounce');
+
+                    setTimeout(() => {
+                        carritoBoton.classList.remove('fly-target-pulse', 'cart-bounce');
+                    }, 450);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function animarAgregarCompleto(boton, nombreProducto = '+1') {
+            animarFeedbackAgregar(boton);
+            animarVueloAlCarrito(boton, nombreProducto);
+        }
+
+        function prepararItem(nombre, precio, sabores, boton = null) {
             itemPendiente = {
                 nombre: nombre,
                 precio: Number(precio) || 0,
-                sabores: Array.isArray(sabores) ? sabores.filter(s => String(s).trim() !== '') : []
+                sabores: Array.isArray(sabores) ? sabores.filter(s => String(s).trim() !== '') : [],
+                botonOrigen: boton
             };
 
             if (itemPendiente.sabores.length > 0) {
@@ -261,7 +574,7 @@
                     select.appendChild(option);
                 });
 
-                document.getElementById('modalSabor').classList.remove('hidden');
+                mostrarModal('modalSabor', 'backdropSabor', 'panelSabor');
             } else {
                 carrito.push({
                     nombre: itemPendiente.nombre,
@@ -269,6 +582,7 @@
                 });
 
                 actualizarUI();
+                animarAgregarCompleto(itemPendiente.botonOrigen, itemPendiente.nombre);
             }
         }
 
@@ -280,7 +594,7 @@
             const tieneSabores = Array.isArray(itemPendiente.sabores) && itemPendiente.sabores.length > 0;
 
             if (tieneSabores && !sabor) {
-                alert("⚠️ Por favor elige un sabor.");
+                mostrarToast("⚠️ Por favor elige un sabor.", "error");
                 return;
             }
 
@@ -295,18 +609,37 @@
 
             actualizarUI();
             cerrarModalSabor();
+            animarAgregarCompleto(itemPendiente.botonOrigen, nombreFinal);
         }
 
         function eliminarDelCarrito(index) {
-            carrito.splice(index, 1);
-            actualizarUI();
+            const items = document.querySelectorAll('.checkout-row');
+            const itemEl = items[index];
 
-            if (carrito.length === 0) {
-                cerrarCheckout();
-                return;
+            if (itemEl) {
+                itemEl.classList.add('removing-item');
+                setTimeout(() => {
+                    carrito.splice(index, 1);
+                    actualizarUI();
+
+                    if (carrito.length === 0) {
+                        cerrarCheckout();
+                        return;
+                    }
+
+                    abrirCheckout();
+                }, 260);
+            } else {
+                carrito.splice(index, 1);
+                actualizarUI();
+
+                if (carrito.length === 0) {
+                    cerrarCheckout();
+                    return;
+                }
+
+                abrirCheckout();
             }
-
-            abrirCheckout();
         }
 
         function actualizarUI() {
@@ -314,7 +647,11 @@
             const badge = document.getElementById('badgeCarrito');
 
             if (carrito.length > 0) {
-                btn.classList.remove('hidden');
+                if (btn.classList.contains('hidden')) {
+                    btn.classList.remove('hidden');
+                    btn.classList.add('cart-visible');
+                    setTimeout(() => btn.classList.remove('cart-visible'), 400);
+                }
                 badge.innerText = carrito.length;
             } else {
                 btn.classList.add('hidden');
@@ -336,7 +673,7 @@
                 total += precio;
 
                 lista.innerHTML += `
-                    <div class="checkout-item flex justify-between items-center p-3 rounded-xl">
+                    <div class="checkout-item checkout-row flex justify-between items-center p-3 rounded-xl">
                         <div class="flex-1">
                             <p class="font-bold text-slate-800 text-sm">${item.nombre}</p>
                             <p class="price-text font-bold text-xs">$${precio}</p>
@@ -351,17 +688,18 @@
             });
 
             totalTxt.innerText = `Total: $${total}`;
-            document.getElementById('modalCheckout').classList.remove('hidden');
+            mostrarModal('modalCheckout', 'backdropCheckout', 'panelCheckout');
         }
 
         function cerrarModalSabor() {
-            document.getElementById('modalSabor').classList.add('hidden');
-            document.getElementById('selectSabor').innerHTML = '<option value="">Selecciona sabor...</option>';
-            itemPendiente = null;
+            ocultarModal('modalSabor', 'backdropSabor', 'panelSabor', () => {
+                document.getElementById('selectSabor').innerHTML = '<option value="">Selecciona sabor...</option>';
+                itemPendiente = null;
+            });
         }
 
         function cerrarCheckout() {
-            document.getElementById('modalCheckout').classList.add('hidden');
+            ocultarModal('modalCheckout', 'backdropCheckout', 'panelCheckout');
         }
 
         function setPago(metodo, btn) {
@@ -397,13 +735,13 @@
             const btn = document.getElementById('btnFinalizar');
 
             if (!nombre || !punto || !metodoPago) {
-                alert("⚠️ Completa tu nombre, punto de entrega y método de pago.");
+                mostrarToast("⚠️ Completa tu nombre, punto de entrega y método de pago.", "error");
                 return;
             }
 
             estaEnviando = true;
-            btn.innerText = "PROCESANDO...";
-            btn.classList.add('opacity-50');
+            btn.innerHTML = '<span class="spinner mr-2"></span> PROCESANDO...';
+            btn.classList.add('opacity-50', 'pointer-events-none');
 
             fetch('/enviar_pedido', {
                 method: 'POST',
@@ -426,36 +764,40 @@
                     throw new Error(data.error || "Error al enviar el pedido.");
                 }
 
-                alert("✅ ¡Pedido enviado! Prepárate para tus dulces.");
+                mostrarToast("✅ ¡Pedido enviado! Prepárate para tus dulces.", "ok");
 
                 carrito = [];
                 actualizarUI();
                 cerrarCheckout();
                 resetFormulario();
-                location.reload();
+
+                setTimeout(() => {
+                    location.reload();
+                }, 900);
             })
             .catch((err) => {
                 console.error("Error enviando pedido:", err);
-                alert(`❌ ${err.message}`);
+                mostrarToast(`❌ ${err.message}`, "error");
             })
             .finally(() => {
                 estaEnviando = false;
-                btn.innerText = "¡ENVIAR PEDIDO!";
-                btn.classList.remove('opacity-50');
+                btn.innerHTML = '¡ENVIAR PEDIDO!';
+                btn.classList.remove('opacity-50', 'pointer-events-none');
             });
         }
 
         let lastScrollY = window.scrollY;
         const header = document.getElementById('mainHeader');
+        const threshold = 10;
 
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY;
 
             if (currentScrollY <= 10) {
                 header.classList.remove('header-hidden');
-            } else if (currentScrollY > lastScrollY) {
+            } else if (currentScrollY > lastScrollY + threshold) {
                 header.classList.add('header-hidden');
-            } else {
+            } else if (currentScrollY < lastScrollY - threshold) {
                 header.classList.remove('header-hidden');
             }
 
