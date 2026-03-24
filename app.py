@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+import pytz  # <--- CAMBIO 1: Importamos la librería de zonas horarias
 import requests
 import gspread
 from flask import Flask, render_template, request, jsonify
@@ -67,7 +68,11 @@ def index():
 @app.route("/enviar_pedido", methods=["POST"])
 def enviar_pedido():
     datos = request.get_json(silent=True) or {}
-    ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # --- CAMBIO 2: CONFIGURACIÓN DE HORA MÉXICO ---
+    mexico_tz = pytz.timezone('America/Mexico_City')
+    ahora = datetime.now(mexico_tz).strftime("%Y-%m-%d %H:%M:%S")
+    # ----------------------------------------------
 
     productos_pedido = datos.get("productos", [])
     nombre_cliente = str(datos.get("nombre_cliente", "")).strip()
