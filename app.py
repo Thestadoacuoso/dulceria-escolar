@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-import pytz  # <--- CAMBIO 1: Importamos la librería de zonas horarias
+import pytz  # Manejo de zonas horarias de México
 import requests
 import gspread
 from flask import Flask, render_template, request, jsonify
@@ -15,7 +15,7 @@ CHAT_ID = "-1003713663194"
 SPREADSHEET_NAME = "Inventario Sugar Dash"
 
 def safe_int(valor, default=0):
-    """Convierte celdas de Excel a números sin que el programa truene."""
+    """Convierte celdas de Excel a números de forma segura."""
     try:
         if valor is None: return default
         texto = str(valor).strip()
@@ -25,7 +25,7 @@ def safe_int(valor, default=0):
         return default
 
 def conectar_hoja():
-    """Conexión segura con Google."""
+    """Conexión segura con Google Sheets."""
     creds_json = os.environ.get("GOOGLE_CREDS")
     if not creds_json:
         raise ValueError("No se encontró la variable GOOGLE_CREDS en Render.")
@@ -39,7 +39,7 @@ def conectar_hoja():
 def index():
     try:
         doc = conectar_hoja()
-        hoja = doc.worksheet("Stock") # Asegúrate que tu pestaña se llame Stock
+        hoja = doc.worksheet("Stock")
         datos = hoja.get_all_records()
         productos = []
 
@@ -69,10 +69,11 @@ def index():
 def enviar_pedido():
     datos = request.get_json(silent=True) or {}
     
-    # --- CAMBIO 2: CONFIGURACIÓN DE HORA MÉXICO ---
+    # --- CONFIGURACIÓN DE HORA MÉXICO ---
     mexico_tz = pytz.timezone('America/Mexico_City')
-    ahora = datetime.now(mexico_tz).strftime("%Y-%m-%d %H:%M:%S")
-    # ----------------------------------------------
+    
+    # NUEVO FORMATO: Día-Mes-Año Hora:Minutos:Segundos
+    ahora = datetime.now(mexico_tz).strftime("%d-%m-%Y %H:%M:%S")
 
     productos_pedido = datos.get("productos", [])
     nombre_cliente = str(datos.get("nombre_cliente", "")).strip()
@@ -99,7 +100,7 @@ def enviar_pedido():
             # 1. Registrar venta
             hoja_ventas.append_row([ahora, nombre_cliente, nombre_full, precio_unitario, metodo_pago])
 
-            # 2. Descontar stock (Columna 3 según tu Excel actual)
+            # 2. Descontar stock
             nombre_base = nombre_full.split(" (")[0].strip()
             fila_encontrada = None
             for i, fila in enumerate(registros_stock, start=2):
@@ -109,10 +110,10 @@ def enviar_pedido():
 
             if fila_encontrada:
                 try:
+                    # Se usa columna 3 para Cantidad según tu estructura
                     cantidad_actual = safe_int(hoja_stock.cell(fila_encontrada, 3).value)
                     nueva_cantidad = max(0, cantidad_actual - 1)
                     
-                    # Columna 3 = Cantidad / Columna 4 = Status
                     hoja_stock.update_cell(fila_encontrada, 3, nueva_cantidad)
                     if nueva_cantidad <= 0:
                         hoja_stock.update_cell(fila_encontrada, 4, "AGOTADO")
