@@ -76,11 +76,6 @@
             box-shadow: 0 18px 34px rgba(255, 122, 26, 0.30);
         }
 
-        .btn-cart:hover,
-        .btn-primary:hover {
-            filter: brightness(1.03);
-        }
-
         .btn-primary {
             background: linear-gradient(135deg, var(--sd-orange-2) 0%, var(--sd-orange-1) 100%);
             box-shadow: 0 14px 28px rgba(255, 122, 26, 0.24);
@@ -112,26 +107,23 @@
             color: var(--sd-orange-2) !important;
         }
 
-        .badge-soft {
-            background: #eef4ff;
-            color: var(--sd-blue-2);
-        }
-
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
+
 <body class="min-h-screen">
 
-    <div class="sticky top-0 z-40 glass px-6 py-4">
+    <!-- 🔥 HEADER EDITADO -->
+    <div class="sticky top-0 z-40 glass px-6 py-10">
         <div class="max-w-md mx-auto flex justify-center items-center">
             <div class="text-center w-full">
                 <img
                     src="/static/logo_sugar.png"
                     alt="Sugar Dash"
-                    class="h-28 mx-auto object-contain mb-1 drop-shadow-md transition hover:scale-105"
+                    class="h-[230px] mx-auto object-contain mb-2 drop-shadow-md transition duration-300 ease-in-out hover:scale-105"
                 >
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.24em]">
                     • Biomédica Express •
