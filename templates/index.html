@@ -227,28 +227,31 @@
 
         .cart-count-bubble {
             position: absolute;
-            top: -7px;
-            right: -9px;
-            min-width: 20px;
-            height: 20px;
+            top: -8px;
+            right: -10px;
+            min-width: 22px;
+            height: 22px;
             padding: 0 6px;
             border-radius: 999px;
-            background: #ef4444;
+            background: linear-gradient(135deg, #ff4d6d 0%, #ef4444 100%);
             color: white;
             font-size: 11px;
-            font-weight: 800;
-            line-height: 16px;
+            font-weight: 900;
+            line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
             border: 2px solid white;
+            box-shadow:
+                0 8px 18px rgba(239, 68, 68, 0.38),
+                0 0 0 4px rgba(255, 255, 255, 0.18);
             transform-origin: center;
+            letter-spacing: -0.02em;
         }
 
         .cart-count-bubble.bump {
-            animation: bubblePop 0.42s ease;
+            animation: bubblePopBounce 0.52s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .confetti-layer {
@@ -358,10 +361,25 @@
             100% { transform: translateY(0) scale(1); }
         }
 
-        @keyframes bubblePop {
-            0% { transform: scale(0.85); }
-            40% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        @keyframes bubblePopBounce {
+            0% {
+                transform: scale(0.55);
+                opacity: 0.7;
+            }
+            35% {
+                transform: scale(1.26);
+                opacity: 1;
+            }
+            58% {
+                transform: scale(0.9);
+            }
+            78% {
+                transform: scale(1.08);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         @keyframes confettiFall {
@@ -429,17 +447,17 @@
         </div>
     </main>
 
-  <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
-    <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-center items-center gap-3 px-8 active:scale-95">
-        <span class="flex items-center gap-3">
-            <span class="relative inline-flex items-center justify-center">
-                <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
-                <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
+    <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
+        <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-center items-center gap-3 px-8 active:scale-95">
+            <span class="flex items-center gap-3">
+                <span id="cartIconWrap" class="relative inline-flex items-center justify-center">
+                    <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
+                    <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
+                </span>
+                <span>VER CARRITO</span>
             </span>
-            <span>VER CARRITO</span>
-        </span>
-    </button>
-</div>
+        </button>
+    </div>
 
     <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div id="backdropSabor" class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm modal-backdrop" onclick="cerrarModalSabor()"></div>
@@ -624,18 +642,19 @@
 
             const carritoContenedor = document.getElementById('btnVerCarrito');
             const carritoBoton = document.getElementById('cartButton');
+            const cartIconWrap = document.getElementById('cartIconWrap');
 
-            if (!carritoContenedor || !carritoBoton) return;
+            if (!carritoContenedor || !carritoBoton || !cartIconWrap) return;
 
             carritoContenedor.classList.remove('hidden');
 
             const origenRect = boton.getBoundingClientRect();
-            const destinoRect = carritoBoton.getBoundingClientRect();
+            const destinoRect = cartIconWrap.getBoundingClientRect();
 
             const startX = origenRect.left + origenRect.width / 2;
             const startY = origenRect.top + origenRect.height / 2;
 
-            const endX = destinoRect.left + destinoRect.width - 42;
+            const endX = destinoRect.left + destinoRect.width / 2;
             const endY = destinoRect.top + destinoRect.height / 2;
 
             const clone = document.createElement('div');
@@ -725,7 +744,7 @@
 
                 setTimeout(() => {
                     bubble.classList.remove("bump");
-                }, 420);
+                }, 520);
             }
 
             if (navigator.vibrate) {
@@ -831,7 +850,6 @@
 
         function actualizarUI() {
             const btn = document.getElementById('btnVerCarrito');
-            const badge = document.getElementById('badgeCarrito');
             const bubble = document.getElementById('cartCountBubble');
 
             if (carrito.length > 0) {
@@ -841,19 +859,28 @@
                     setTimeout(() => btn.classList.remove('cart-visible'), 400);
                 }
 
-                badge.innerText = carrito.length;
-
                 if (bubble) {
+                    const valorAnterior = parseInt(bubble.innerText || '0', 10);
                     bubble.innerText = carrito.length;
                     bubble.classList.remove('hidden');
+
+                    if (valorAnterior !== carrito.length) {
+                        bubble.classList.remove('bump');
+                        void bubble.offsetWidth;
+                        bubble.classList.add('bump');
+
+                        setTimeout(() => {
+                            bubble.classList.remove('bump');
+                        }, 520);
+                    }
                 }
             } else {
                 btn.classList.add('hidden');
-                badge.innerText = '0';
 
                 if (bubble) {
                     bubble.innerText = '0';
                     bubble.classList.add('hidden');
+                    bubble.classList.remove('bump');
                 }
             }
         }
