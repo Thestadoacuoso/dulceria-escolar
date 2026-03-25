@@ -429,18 +429,17 @@
         </div>
     </main>
 
-    <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
-        <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-between items-center px-8 active:scale-95">
-            <span class="flex items-center gap-3">
-                <span class="relative inline-flex items-center justify-center">
-                    <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
-                    <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
-                </span>
-                <span>VER CARRITO</span>
+  <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
+    <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-center items-center gap-3 px-8 active:scale-95">
+        <span class="flex items-center gap-3">
+            <span class="relative inline-flex items-center justify-center">
+                <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
+                <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
             </span>
-            <span id="badgeCarrito" class="bg-white/90 text-[#ff7a1a] px-3 py-1 rounded-full text-sm font-bold">0</span>
-        </button>
-    </div>
+            <span>VER CARRITO</span>
+        </span>
+    </button>
+</div>
 
     <div id="modalSabor" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div id="backdropSabor" class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm modal-backdrop" onclick="cerrarModalSabor()"></div>
