@@ -208,8 +208,19 @@
             vertical-align: middle;
         }
 
+        .cart-icon-bubble {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow:
+                0 10px 24px rgba(255, 255, 255, 0.25),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
         .cart-icon {
-            filter: drop-shadow(0 4px 10px rgba(255,122,26,0.20));
+            filter: drop-shadow(0 4px 10px rgba(255,122,26,0.18));
             transform-origin: center;
         }
 
@@ -448,10 +459,10 @@
     </main>
 
     <div id="btnVerCarrito" class="fixed bottom-6 left-0 right-0 px-6 z-40 hidden btn-float">
-        <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-center items-center gap-3 px-8 active:scale-95">
+        <button id="cartButton" onclick="abrirCheckout()" class="btn-cart max-w-md mx-auto w-full text-white py-5 rounded-[2rem] font-black text-lg flex justify-center items-center gap-4 px-8 active:scale-95">
             <span class="flex items-center gap-3">
-                <span id="cartIconWrap" class="relative inline-flex items-center justify-center">
-                    <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-8 h-8 object-contain cart-icon">
+                <span id="cartIconWrap" class="relative inline-flex items-center justify-center cart-icon-bubble">
+                    <img id="cartIcon" src="/static/cart.png" alt="Carrito" class="w-7 h-7 object-contain cart-icon relative z-10">
                     <span id="cartCountBubble" class="cart-count-bubble hidden">0</span>
                 </span>
                 <span>VER CARRITO</span>
